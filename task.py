@@ -1,75 +1,51 @@
-import google.generativeai as genai
 import streamlit as st
+import google.generativeai as genai
 
-class AiCodeReviewer:
-    def __init__(self):
-        self.key = "AIzaSyCD36In7eRsq-0nx6jOrgCQbaUViP3Ls2I"
+genai.configure(api_key="AIzaSyCD36In7eRsq-0nx6jOrgCQbaUViP3Ls2I")
 
-    def chatbot(self, system_instruction: str = None) -> object:
-        genai.configure(api_key=self.key)
-        model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            system_instruction=system_instruction
-        )
-        return model
+def review_code(code):
+    prompt = f"""
+    You are an AI code reviewer. Analyze the following Python code thoroughly and provide structured feedback in Markdown format. Your review should include:
+    
+    ### 1. Errors & Bugs
+    - Identify **syntax errors**, **logical issues**, and **runtime exceptions**.
+    - Provide explanations for why these errors occur.
 
-    def streamlit_app(self) -> None:
-        st.markdown(
-            """
-            <style>
-            .stChatMessage { 
-                border-radius: 10px; 
-                padding: 10px; 
-                margin: 5px 0; 
-                font-weight: bold; 
-                font-family: Arial, sans-serif;
-            }
-            .stChatMessage.user { 
-                background-color: #f5f5f5; 
-                color: #000000; 
-                border: 1px solid #dcdcdc;
-            }
-            .stChatMessage.ai { 
-                background-color: #ffffff; 
-                color: #000000; 
-                border: 1px solid #dcdcdc;
-            }
-            .code-container { 
-                background-color: #f4f4f4; 
-                padding: 10px; 
-                border-radius: 10px; 
-                font-family: monospace;
-            }
-            </style>
-            """, 
-            unsafe_allow_html=True
-        )
+    ### 2. Performance & Optimization
+    - Suggest improvements for **speed**, **memory efficiency**, and **best practices**.
+    - Identify **redundant operations** or **complexity improvements**.
 
-        st.title("🚀 AI Code Reviewer")
+    ### 3. Security Issues
+    - Check for vulnerabilities such as **unsafe input handling**, **hardcoded secrets**, or **insecure API usage**.
 
-        if "chat_history" not in st.session_state:
-            st.session_state["chat_history"] = []
+    ### 4. Best Practices & Readability
+    - Recommend improvements in **code structure, naming conventions, and comments**.
 
-        instruction = """You are an expert AI code reviewer. Analyze the provided code for clarity, efficiency, and maintainability.
-        Identify potential errors, suggest improvements, and provide clear, actionable feedback."""
-        
-        model = self.chatbot(instruction)
-        chat = model.start_chat(history=st.session_state["chat_history"])
+    ### 5. Fixed Code
+    - Provide a fully **corrected and optimized version** of the code.
 
-        for msg in chat.history:
-            role_class = "user" if msg.role == "user" else "ai"
-            st.markdown(f'<div class="stChatMessage {role_class}">{msg.parts[0].text}</div>', unsafe_allow_html=True)
+    **Code to review:**
+    ```python
+    {code}
+    ```
+    """
+    try:
+        model = genai.GenerativeModel("gemini-pro")
+        response = model.generate_content(prompt)
+        return response.text
+    except Exception as e:
+        return f"Error: {str(e)}"
 
-        st.subheader("📝 Submit Your Code for Review")
-        user_code = st.text_area("Paste your Python code here:", height=150)
-        submit = st.button("🔍 Analyze Code")
+st.title("AI Code Reviewer (Google Gemini)")
+st.write("Submit your Python code for an AI-powered, detailed review!")
 
-        if submit and user_code:
-            st.markdown(f'<div class="stChatMessage user">{user_code}</div>', unsafe_allow_html=True)
-            response = chat.send_message(user_code)
-            st.markdown(f'<div class="stChatMessage ai">{response.text}</div>', unsafe_allow_html=True)
-            st.session_state["chat_history"] = chat.history
+code = st.text_area("Enter Python code here:", height=220)
 
-if __name__ == "__main__":
-    ai = AiCodeReviewer()
-    ai.streamlit_app()
+if st.button("Review Code"):
+    if code.strip():
+        with st.spinner("Reviewing code..."):
+            feedback = review_code(code)
+        st.subheader("Detailed AI Review:")
+        st.markdown(feedback)
+    else:
+        st.warning("Please enter some Python code.")
