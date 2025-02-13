@@ -36,7 +36,7 @@ def review_code(code):
     except Exception as e:
         return f"Error: {str(e)}"
 
-st.title("AI Code Reviewer (Google Gemini)")
+st.title("AI Code Reviewer")
 st.write("Submit your Python code for an AI-powered, detailed review!")
 
 code = st.text_area("Enter Python code here:", height=220)
