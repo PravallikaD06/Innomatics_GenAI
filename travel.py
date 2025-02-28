@@ -3,7 +3,7 @@ import google.generativeai as genai
 import json
 from datetime import datetime
 
-API_KEY = "AIzaSyCD36In7eRsq-0nx6jOrgCQbaUViP3Ls2I"
+API_KEY = "GOOGLE_API_KEY"
 genai.configure(api_key=API_KEY)
 
 def get_travel_recommendations(source, destination, travel_date):
